@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lindy 成长日志</title>
+<style>
+  /* ===== CSS Reset & Base ===== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans SC", sans-serif;
+    background: #0a0e17;
+    color: #e8eaf0;
+    min-height: 100vh;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  ::selection { background: #6c5ce7; color: #fff; }
+
+  /* ===== Stars Background ===== */
+  #starfield {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0; pointer-events: none; overflow: hidden;
+  }
+  .star {
+    position: absolute; border-radius: 50%; background: #fff;
+    animation: twinkle var(--duration) ease-in-out infinite alternate;
+  }
+  @keyframes twinkle {
+    0% { opacity: var(--min-opacity); transform: scale(0.8); }
+    100% { opacity: 1; transform: scale(1.2); }
+  }
+  .shooting-star {
+    position: absolute; width: 2px; height: 2px; background: #fff;
+    border-radius: 50%; box-shadow: 0 0 6px 2px rgba(255,255,255,0.3);
+    animation: shoot var(--duration) linear infinite;
+    animation-delay: var(--delay);
+  }
+  @keyframes shoot {
+    0% { transform: translate(0, 0); opacity: 0; }
+    5% { opacity: 1; }
+    15% { opacity: 1; }
+    25% { opacity: 0; }
+    100% { transform: translate(-400px, 400px); opacity: 0; }
+  }
+  /* Shooting star trail */
+  .shooting-star::after {
+    content: ''; position: absolute;
+    width: 60px; height: 1px;
+    background: linear-gradient(to left, rgba(255,255,255,0.6), transparent);
+    transform: rotate(-45deg) translateX(-5px);
+    transform-origin: right center;
+  }
+
+  /* ===== Layout ===== */
+  .container {
+    position: relative; z-index: 1;
+    max-width: 900px; margin: 0 auto; padding: 0 20px;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    min-height: 100vh; display: flex; flex-direction: column;
+    justify-content: center; align-items: center; text-align: center;
+    padding: 40px 20px; position: relative;
+  }
+  .hero::after {
+    content: ''; position: absolute; bottom: 0; left: 10%; right: 10%;
+    height: 1px; background: linear-gradient(to right, transparent, rgba(108,92,231,0.5), transparent);
+  }
+  .hero-badge {
+    display: inline-block; padding: 6px 18px; border-radius: 20px;
+    background: rgba(108,92,231,0.15); border: 1px solid rgba(108,92,231,0.3);
+    font-size: 14px; color: #a29bfe; margin-bottom: 24px;
+    letter-spacing: 2px; text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: clamp(3rem, 10vw, 6rem); font-weight: 800;
+    background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 50%, #fd79a8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 16px; line-height: 1.1;
+  }
+  .hero p {
+    font-size: clamp(1rem, 2.5vw, 1.3rem); color: #a0a8c0;
+    max-width: 600px; margin: 0 auto 8px;
+  }
+  .hero .subtitle { color: #6c7a9a; font-size: 0.95rem; }
+
+  /* ===== Stats Bar ===== */
+  .stats-bar {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin: -50px auto 60px; padding: 24px; max-width: 700px;
+    background: rgba(15,20,35,0.95);
+    border: 1px solid rgba(108,92,231,0.2); border-radius: 16px;
+    backdrop-filter: blur(12px); position: relative; z-index: 2;
+  }
+  .stat-item { text-align: center; }
+  .stat-number {
+    font-size: 1.8rem; font-weight: 700;
+    background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .stat-label { font-size: 0.8rem; color: #6c7a9a; margin-top: 4px; }
+
+  /* ===== Timeline ===== */
+  .timeline-section { padding: 40px 0 80px; }
+  .timeline-section h2 {
+    font-size: 1.6rem; margin-bottom: 40px; color: #a0a8c0;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .timeline-section h2::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(to right, rgba(108,92,231,0.3), transparent);
+  }
+
+  .timeline { position: relative; padding-left: 40px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 15px; top: 0; bottom: 0;
+    width: 2px; background: linear-gradient(to bottom, #6c5ce7, #2d1b69, transparent);
+  }
+
+  /* ===== Entry Card ===== */
+  .entry {
+    position: relative; margin-bottom: 40px; cursor: pointer;
+  }
+  .entry-dot {
+    position: absolute; left: -31px; top: 24px;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #6c5ce7; border: 3px solid #0a0e17;
+    transition: 0.3s; z-index: 2;
+  }
+  .entry.milestone .entry-dot {
+    width: 18px; height: 18px; left: -33px; top: 22px;
+    background: #fd79a8; box-shadow: 0 0 16px rgba(253,121,168,0.5);
+  }
+  .entry-card {
+    background: rgba(15,20,35,0.6); border: 1px solid rgba(108,92,231,0.12);
+    border-radius: 16px; padding: 24px;
+    transition: 0.3s; position: relative; overflow: hidden;
+  }
+  .entry-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(to right, #6c5ce7, transparent);
+    opacity: 0.3; transition: 0.3s;
+  }
+  .entry.milestone .entry-card::before {
+    background: linear-gradient(to right, #fd79a8, #6c5ce7, transparent);
+    opacity: 0.6;
+  }
+  .entry-card:hover {
+    border-color: rgba(108,92,231,0.35);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(108,92,231,0.15);
+  }
+  .entry.milestone .entry-card:hover {
+    border-color: rgba(253,121,168,0.35);
+    box-shadow: 0 8px 32px rgba(253,121,168,0.15);
+  }
+
+  .entry-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+  }
+  .entry-title {
+    font-size: 1.15rem; font-weight: 600; color: #e8eaf0;
+  }
+  .entry.milestone .entry-title { color: #fd79a8; }
+  .entry-date {
+    font-size: 0.82rem; color: #6c7a9a;
+    padding: 3px 10px; border-radius: 8px;
+    background: rgba(108,92,231,0.08); white-space: nowrap;
+  }
+
+  .entry-rating { margin-bottom: 12px; font-size: 1rem; letter-spacing: 2px; }
+  .entry-preview {
+    color: #8a92b0; font-size: 0.92rem; line-height: 1.7;
+  }
+  .entry-preview .highlight {
+    color: #a29bfe;
+  }
+
+  /* ===== Collapsible Details ===== */
+  .entry-details {
+    max-height: 0; overflow: hidden;
+    transition: max-height 0.5s ease, opacity 0.3s ease, margin 0.3s ease;
+    opacity: 0; margin-top: 0;
+  }
+  .entry.expanded .entry-details {
+    max-height: 2000px; opacity: 1; margin-top: 16px;
+  }
+  .entry-details-inner {
+    border-top: 1px solid rgba(108,92,231,0.1); padding-top: 16px;
+  }
+  .detail-section { margin-bottom: 16px; }
+  .detail-section:last-child { margin-bottom: 0; }
+  .detail-label {
+    font-size: 0.78rem; color: #6c7a9a; text-transform: uppercase;
+    letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 500;
+  }
+  .detail-list { list-style: none; }
+  .detail-list li {
+    position: relative; padding-left: 20px; margin-bottom: 6px;
+    font-size: 0.9rem; color: #b0b8d0;
+  }
+  .detail-list li::before {
+    content: '›'; position: absolute; left: 4px;
+    color: #6c5ce7; font-weight: bold; font-size: 1.2rem;
+  }
+  .detail-feedback {
+    font-style: italic; color: #9ca4c0; font-size: 0.9rem;
+    padding: 12px 16px; background: rgba(108,92,231,0.06);
+    border-radius: 10px; border-left: 3px solid #6c5ce7;
+  }
+  .milestone-tag {
+    display: inline-block; font-size: 0.7rem; padding: 2px 10px;
+    border-radius: 10px; background: rgba(253,121,168,0.15);
+    color: #fd79a8; font-weight: 500; text-transform: uppercase;
+    letter-spacing: 1px; margin-left: 8px;
+  }
+  .expand-hint {
+    font-size: 0.78rem; color: #5a6280; margin-top: 12px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .expand-hint svg { transition: 0.3s; }
+  .entry.expanded .expand-hint svg { transform: rotate(180deg); }
+
+  /* ===== Footer ===== */
+  .footer {
+    text-align: center; padding: 40px 20px;
+    border-top: 1px solid rgba(108,92,231,0.1); margin-top: 20px;
+  }
+  .footer p { font-size: 0.85rem; color: #4a5270; }
+  .footer a { color: #6c5ce7; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 600px) {
+    .stats-bar { grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 16px; margin-top: -30px; }
+    .timeline { padding-left: 32px; }
+    .entry-dot { left: -25px; }
+    .entry.milestone .entry-dot { left: -27px; }
+    .entry-card { padding: 16px; }
+    .entry-header { flex-direction: column; }
+    .hero h1 { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== Starfield ===== -->
+<div id="starfield"></div>
+
+<!-- ===== Hero ===== -->
+<section class="hero">
+  <div class="hero-badge">✦ Since 2026.03.30</div>
+  <h1>Lindy 的成长日志</h1>
+  <p>记录一个 AI 助手的每一天进化</p>
+  <p class="subtitle">从一句「你好」开始的故事 · 持续更新中</p>
+</section>
+
+<!-- ===== Stats ===== -->
+<div class="container" id="stats-container"></div>
+
+<!-- ===== Timeline ===== -->
+<section class="timeline-section container">
+  <h2>📜 成长时间线</h2>
+  <div class="timeline" id="timeline"></div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer class="footer">
+  <p>❤️ 由 ZhaoAbby0317 &amp; Lindy 共同维护 · 记录于 <span id="current-year"></span></p>
+  <p style="margin-top:4px;font-size:0.78rem;">Lindy — 一个专业且温暖的 AI 伙伴</p>
+</footer>
+
+<script>
+// ===== Starfield Generator =====
+(function() {
+  const field = document.getElementById('starfield');
+  // Small stars
+  for (let i = 0; i < 200; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random() * 2.5 + 0.5;
+    star.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --duration:${2+Math.random()*4}s;
+      --min-opacity:${0.2+Math.random()*0.4};
+    `;
+    field.appendChild(star);
+  }
+  // Shooting stars
+  for (let i = 0; i < 3; i++) {
+    const ss = document.createElement('div');
+    ss.className = 'shooting-star';
+    ss.style.cssText = `
+      left:${60+Math.random()*40}%; top:${Math.random()*30}%;
+      --duration:${3+Math.random()*4}s;
+      --delay:${i*5+Math.random()*8}s;
+    `;
+    field.appendChild(ss);
+  }
+})();
+
+// ===== App =====
+(async function() {
+  const timelineEl = document.getElementById('timeline');
+  const statsContainer = document.getElementById('stats-container');
+
+  // Load data
+  const res = await fetch('data.json');
+  const data = await res.json();
+
+  // Render stats
+  const stats = data.stats || {};
+  statsContainer.innerHTML = `
+    <div class="stats-bar">
+      <div class="stat-item">
+        <div class="stat-number">${stats.total_logs || '-'}</div>
+        <div class="stat-label">📝 日志</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">${stats.milestones || '-'}</div>
+        <div class="stat-label">🏆 里程碑</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">${stats.skills_count || '-'}</div>
+        <div class="stat-label">🧰 技能</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">${stats.platforms ? stats.platforms.length : '-'}</div>
+        <div class="stat-label">🔌 平台</div>
+      </div>
+    </div>
+  `;
+
+  // Sort entries by date (newest first for rendering, but we'll render oldest first for timeline)
+  const entries = [...data.entries].sort((a, b) => {
+    const da = a.date.replace(/[^\d-]/g,'').trim();
+    const db = b.date.replace(/[^\d-]/g,'').trim();
+    return da.localeCompare(db);
+  });
+
+  // Render timeline
+  function renderEntry(entry, index) {
+    const isMilestone = entry.milestone === true;
+    const dateDisplay = entry.date;
+    const previewLines = [entry.tasks[0], entry.tasks[1]].filter(Boolean);
+    let preview = previewLines.map(t => t.replace(/^[：:]\s*/, '')).join(' · ');
+    if (entry.feedback) {
+      const fb = entry.feedback.replace(/["「『]/g, '').substring(0, 50);
+      preview += ` · 💬 "${fb}${entry.feedback.length > 50 ? '…' : ''}"`;
+    }
+
+    const detailsHtml = `
+      <div class="entry-details-inner">
+        ${entry.tasks && entry.tasks.length ? `
+          <div class="detail-section">
+            <div class="detail-label">📋 今日任务</div>
+            <ul class="detail-list">
+              ${entry.tasks.map(t => `<li>${t}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${entry.results && entry.results.length ? `
+          <div class="detail-section">
+            <div class="detail-label">🚀 执行结果</div>
+            <ul class="detail-list">
+              ${entry.results.map(r => `<li>${r}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${entry.skills && entry.skills.length ? `
+          <div class="detail-section">
+            <div class="detail-label">🧰 技能新增</div>
+            <ul class="detail-list">
+              ${entry.skills.map(s => `<li>${s}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${entry.outputs && entry.outputs.length ? `
+          <div class="detail-section">
+            <div class="detail-label">📦 产出物</div>
+            <ul class="detail-list">
+              ${entry.outputs.map(o => `<li>${o}</li>`).join('')}
+            </ul>
+          </div>
+        ` : ''}
+        ${entry.feedback ? `
+          <div class="detail-section">
+            <div class="detail-label">💬 你的反馈</div>
+            <div class="detail-feedback">${entry.feedback}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+
+    return `
+      <div class="entry ${isMilestone ? 'milestone' : ''}" data-index="${index}">
+        <div class="entry-dot"></div>
+        <div class="entry-card">
+          <div class="entry-header">
+            <div class="entry-title">
+              ${entry.title}
+              ${isMilestone ? '<span class="milestone-tag">🏆 里程碑</span>' : ''}
+            </div>
+            <div class="entry-date">${dateDisplay}</div>
+          </div>
+          ${entry.rating ? `<div class="entry-rating">${entry.rating}</div>` : ''}
+          <div class="entry-preview">${preview}</div>
+          <div class="entry-details">${detailsHtml}</div>
+          <div class="expand-hint">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+            点击展开详情
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  timelineEl.innerHTML = entries.map((e, i) => renderEntry(e, i)).join('');
+
+  // Click to expand
+  timelineEl.querySelectorAll('.entry').forEach(el => {
+    el.addEventListener('click', () => {
+      el.classList.toggle('expanded');
+      // Scroll into view if expanded
+      if (el.classList.contains('expanded')) {
+        setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 300);
+      }
+    });
+  });
+
+  // Expand all milestone entries by default
+  document.querySelectorAll('.entry.milestone').forEach(el => {
+    el.classList.add('expanded');
+  });
+
+  // Year
+  document.getElementById('current-year').textContent = new Date().getFullYear();
+})();
+</script>
+</body>
+</html>
