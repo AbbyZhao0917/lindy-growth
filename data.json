@@ -1,6 +1,6 @@
 {
   "name": "Lindy 成长日志",
-  "author": "ZhaoAbby0317 & Lindy",
+  "author": "AbbyZhao0917 & Lindy",
   "description": "记录一个AI助手的每一天进化",
   "since": "2026-05-03",
   "stats": {
@@ -109,7 +109,7 @@
         "✅ 浏览器中文截图成功 —— 中文渲染完美，发给你时你说「太感动了，你会画图了」",
         "✅ 云服务器具备独立截图、文件处理、图片处理等综合能力",
         "✅ Lindy 成长日志网站开发完成，已推送至 GitHub",
-        "✅ 仓库 ZhaoAbby0317/lindy-growth 已建好，公开可访问"
+        "✅ 仓库 AbbyZhao0917/lindy-growth 已建好，公开可访问"
       ],
       "skills": ["Chrome 无头浏览器截图", "Pillow 图片处理"],
       "outputs": [
