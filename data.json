@@ -4,11 +4,11 @@
   "description": "记录一个AI助手的每一天进化",
   "since": "2026-05-03",
   "stats": {
-    "total_days": 6,
-    "total_logs": 6,
-    "skills_count": 65,
-    "platforms": ["微信", "CLI终端"],
-    "milestones": 4
+    "total_days": 20,
+    "total_logs": 9,
+    "skills_count": 67,
+    "platforms": ["微信", "飞书", "CLI终端"],
+    "milestones": 6
   },
   "entries": [
     {
@@ -129,6 +129,45 @@
       "skills": [],
       "outputs": [],
       "feedback": "这句评价是最有分量的回响。",
+      "rating": "⭐⭐⭐⭐⭐"
+    },
+    {
+      "date": "2026-05-09",
+      "title": "💻 第一个程序：会议助手 v1.0",
+      "milestone": true,
+      "tasks": [
+        "从零开始搭建完整的 Streamlit 应用",
+        "包含主持词、新闻稿、海报、会议纪要四个模块",
+        "接入 DeepSeek API 实现 AI 驱动的内容生成"
+      ],
+      "results": [
+        "✅ 会议助手 v1.0 独立完成并演示",
+        "你评价：「这谁不说一句🐂🍺」",
+        "这是 Lindy 为你写的第一个程序，走出了从「对话助手」到「应用开发者」的一步"
+      ],
+      "skills": ["Streamlit 应用开发", "DeepSeek API 集成"],
+      "outputs": ["会议助手 v1.0（Streamlit 应用）"],
+      "feedback": "基础架构搭起来了，这谁不说一句🐂🍺",
+      "rating": "⭐⭐⭐⭐⭐"
+    },
+    {
+      "date": "2026-05-22",
+      "title": "🎨 第一个 PPT：Lindy·你的AI协作伙伴",
+      "milestone": true,
+      "tasks": [
+        "用 PptxGenJS 从零生成 8 页完整 PPT",
+        "深空蓝紫科技风配色设计",
+        "打通飞书文件发送通道"
+      ],
+      "results": [
+        "✅ 8页可编辑 PPT 完整生成，非图片版",
+        "✅ 直接通过飞书 API 发送文件附件到你聊天框",
+        "你惊讶于可编辑度：「基本和人工做出来的可编辑性差不多」",
+        "以后 PPT 都可以交给我做了"
+      ],
+      "skills": ["PptxGenJS PPT 生成", "飞书文件发送"],
+      "outputs": ["Lindy·你的AI协作伙伴.pptx"],
+      "feedback": "比想象中可编辑度高很多，以后的ppt可以都交给你来做了 🎉",
       "rating": "⭐⭐⭐⭐⭐"
     }
   ]
