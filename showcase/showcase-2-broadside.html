@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BROADSIDE · AI 应用实践宣言</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;600;800;900&family=IBM+Plex+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#111;--bg-alt:#1a1a18;--fg:#f0ece5;--accent:#e85d26;--border:#282826;--muted:#888880;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--fg);font-family:'Barlow',sans-serif;overflow:hidden;}
+/* 报纸油墨噪点 */
+body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.05;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+/* 报纸顶栏报头 */
+.masthead{position:fixed;top:0;left:0;right:0;z-index:10;padding:14px 6vw;display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px double var(--fg);background:var(--bg);}
+.masthead .date{font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.2em;color:var(--muted);}
+.masthead .edition{font-family:'Barlow';font-weight:800;font-size:13px;letter-spacing:.25em;color:var(--accent);}
+.masthead .vol{font-family:'IBM Plex Mono';font-size:11px;color:var(--muted);}
+/* 报纸主标题大报头 */
+.paper-title{font-family:'Barlow';font-weight:900;font-size:clamp(34px,7vw,84px);letter-spacing:.02em;text-align:center;margin:26px 0 10px;border-bottom:4px solid var(--fg);padding-bottom:14px;line-height:1;}
+/* 舞台 */
+.reader{position:fixed;inset:0;z-index:5;overflow-y:auto;scroll-snap-type:y mandatory;padding-top:120px;}
+section{min-height:calc(100vh - 120px);padding:6vh 6vw;scroll-snap-align:start;position:relative;}
+/* 新闻页 */
+.page-head{display:flex;align-items:baseline;gap:2vw;border-bottom:2px solid var(--accent);padding-bottom:10px;margin-bottom:4vh;}
+.page-head .kicker{font-family:'Barlow';font-weight:800;font-size:13px;letter-spacing:.3em;color:var(--accent);text-transform:uppercase;white-space:nowrap;}
+.page-head .rule{flex:1;border-top:1px solid var(--border);}
+/* 大标题 + 头条 */
+.headline{font-family:'Barlow';font-weight:900;font-size:clamp(28px,5.2vw,64px);line-height:.98;letter-spacing:-.01em;text-transform:uppercase;margin-bottom:2vh;}
+.lead{font-family:'Noto Sans SC';font-weight:700;font-size:clamp(14px,1.8vw,19px);color:var(--fg);max-width:70ch;line-height:1.6;}
+/* 新闻图（照片交互核心） */
+.photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.4vw;margin-top:5vh;}
+.news-photo{position:relative;overflow:hidden;border:1px solid var(--border);cursor:pointer;aspect-ratio:4/5;background:var(--bg-alt);}
+.news-photo img{width:100%;height:100%;object-fit:cover;filter:grayscale(1) contrast(1.05) sepia(.25);transition:filter .6s,transform .8s cubic-bezier(.2,.8,.2,1);}
+.news-photo:hover img{filter:grayscale(0) sepia(0) contrast(1.1);transform:scale(1.06);}
+.news-photo .photo-cap{position:absolute;left:0;right:0;bottom:0;padding:26px 14px 10px;font-family:'IBM Plex Mono';font-size:11px;letter-spacing:.08em;color:var(--fg);background:linear-gradient(transparent,var(--bg));}
+.news-photo .photo-cap b{color:var(--accent);}
+/* 声明大段 */
+.manifesto{font-family:'Barlow';font-weight:800;font-size:clamp(22px,3.6vw,46px);line-height:1.25;text-transform:uppercase;max-width:28ch;letter-spacing:-.01em;}
+.manifesto .hl{color:var(--accent);}
+/* 引用块 */
+.push-quote{font-family:'Noto Sans SC';font-weight:900;font-size:clamp(18px,3vw,34px);line-height:1.5;border-left:6px solid var(--accent);padding-left:1.5vw;max-width:36ch;}
+.push-quote small{display:block;font-family:'IBM Plex Mono';font-weight:400;font-size:12px;color:var(--muted);margin-top:14px;letter-spacing:.1em;}
+/* 编辑页脚 */
+.footer-fold{position:fixed;bottom:0;left:0;right:0;z-index:10;padding:10px 6vw;background:var(--bg);border-top:2px solid var(--fg);display:flex;justify-content:center;gap:2vw;font-family:'IBM Plex Mono';font-size:12px;letter-spacing:.15em;color:var(--fg);}
+.footer-fold span{cursor:pointer;color:var(--muted);transition:.3s;}
+.footer-fold span.on,.footer-fold span:hover{color:var(--accent);}
+.footer-fold .p{named:auto;}
+/* 滚动条隐藏但可滚 */
+.reader::-webkit-scrollbar{width:6px;} .reader::-webkit-scrollbar-thumb{background:var(--accent);}
+
+/* ==== 优化增强：ink 墨迹拖影 + reduced-motion ==== */
+#ink{position:fixed;inset:0;z-index:1;pointer-events:none;}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+.news-photo img{opacity:0;transition:opacity .5s,filter .6s,transform .8s cubic-bezier(.2,.8,.2,1);}
+.news-photo img.ok{opacity:1;}
+.paper-title{position:relative;}
+.paper-title::after{content:'';position:absolute;left:0;right:0;bottom:14px;height:100%;background:repeating-linear-gradient(0deg,transparent 0 2px,rgba(255,255,255,.06) 2px 3px);opacity:.7;pointer-events:none;}
+/* 大字标题油墨压印效果 */
+.headline{text-shadow:2px 2px 0 rgba(232,93,38,.18);}
+@media (max-width:768px){.photo-grid{grid-template-columns:repeat(2,1fr);gap:2vw;}section{padding:5vh 5vw;}.masthead,.footer-fold{padding:10px 4vw;}}
+
+</style>
+</head>
+<body>
+<canvas id="ink"></canvas>
+<header class="masthead">
+  <span class="date">ABBY ZHAO · 2026.07</span>
+  <span class="edition">THE&nbsp;VIBE&nbsp;CODE&nbsp;·&nbsp;SPECIAL&nbsp;EDITION</span>
+  <span class="vol">No. 042 — EXPRESS</span>
+</header>
+<main class="reader" id="reader">
+
+  <!-- P1 头版 -->
+  <section>
+    <div class="paper-title">THE VIBE CODE</div>
+    <div class="page-head"><span class="kicker">Front Page</span><div class="rule"></div><span style="font-family:'IBM Plex Mono';font-size:11px;color:var(--muted)">ESSAY 01</span></div>
+    <h1 class="headline" style="font-size:clamp(30px,5.6vw,70px);">用 <span style="color:var(--accent)">Agent</span> 打开工作的更多可能性</h1>
+    <p class="lead">一个人 + 两个 Agent 的实践报告。从黑盒到流水线，从行业研究到会议助手——一场 Vibe Coding 的实验连载。</p>
+    <div class="photo-grid">
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1496449903678-68ddcb189a24?w=500&q=80" alt=""><div class="photo-cap"><b>FIG.1</b>&nbsp; RESEARCH / 研究现场</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=500&q=80" alt=""><div class="photo-cap"><b>FIG.2</b>&nbsp; PIPELINE / 流水线作业</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=500&q=80" alt=""><div class="photo-cap"><b>FIG.3</b>&nbsp; MITWIFI / 基建全景</div></div>
+    </div>
+  </section>
+
+  <!-- P2 方法论 -->
+  <section>
+    <div class="page-head"><span class="kicker">Method</span><div class="rule"></div></div>
+    <h2 class="headline" style="font-size:clamp(22px,3.8vw,46px);">从黑盒到流水线</h2>
+    <div class="push-quote">一次失败的尝试 → 一次成功的拆解<br><small>1.0 黑盒 │ 2.0 流水线 · 分步可追溯 · 证据校验 · 状态兜底</small></div>
+    <p class="lead" style="margin-top:4vh;">关键洞察：不要端到端。可追溯 · 可复现 · 可信 · 可扩展。五个 Skill 蒸馏肖然《如何快速了解一个行业》。</p>
+  </section>
+
+  <!-- P3 基础设施 -->
+  <section>
+    <div class="page-head"><span class="kicker">Infrastructure</span><div class="rule"></div></div>
+    <h2 class="headline" style="font-size:clamp(22px,3.8vw,46px);">AI 基础设施全景</h2>
+    <div class="manifesto">本地 <span class="hl">CLAUDE CODE</span> · 云端 <span class="hl">HERMES</span> · <span class="hl">SKILLS×30+</span> · MCP×4 · 人格层 SOUL.md</div>
+    <div class="photo-grid" style="margin-top:6vh;">
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1522252234503-e356532cafd5?w=500&q=80" alt=""><div class="photo-cap"><b>STACK-01</b>&nbsp; 本地开发</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1667372393119-3d4c48d07fc9?w=500&q=80" alt=""><div class="photo-cap"><b>STACK-02</b>&nbsp; 云上部署</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=500&q=80" alt=""><div class="photo-cap"><b>STACK-03</b>&nbsp; 代码审查</div></div>
+    </div>
+  </section>
+
+  <!-- P3+ 我的 AI 成果矩阵 -->
+  <section>
+    <div class="page-head"><span class="kicker">My Outputs</span><div class="rule"></div><span style="font-family:'IBM Plex Mono';font-size:11px;color:var(--muted)">WORKSHOP</span></div>
+    <h2 class="headline" style="font-size:clamp(26px,4.2vw,52px);">我的 AI 成果矩阵</h2>
+    <p class="lead">从研究到落地 —— 一个人 + 两个 Agent 的实践。</p>
+    <div class="photo-grid" style="margin-top:4vh;grid-template-columns:repeat(4,1fr);">
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=500&q=80" alt=""><div class="photo-cap"><b>🔬</b>&nbsp;行业研究</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&q=80" alt=""><div class="photo-cap"><b>🎙</b>&nbsp;嘴替</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=500&q=80" alt=""><div class="photo-cap"><b>📝</b>&nbsp;会议助手</div></div>
+      <div class="news-photo"><img src="https://images.unsplash.com/photo-1555617981-dac3880eac9e?w=500&q=80" alt=""><div class="photo-cap"><b>🖨</b>&nbsp;3D模型</div></div>
+    </div>
+    <p class="lead" style="margin-top:4vh;">Claude Code + CC Switch + Hermes ｜ <span style="color:var(--accent)">Skills×30+</span> ｜ MCP×4 ｜ DeepSeek V4 / V4 Flash</p>
+  </section>
+
+  <!-- P3++ 五个 Skill -->
+  <section>
+    <div class="page-head"><span class="kicker">The Toolkit</span><div class="rule"></div></div>
+    <h2 class="headline" style="font-size:clamp(26px,4.2vw,52px);">方法论，蒸馏成五个 Skill</h2>
+    <div class="manifesto" style="font-size:clamp(18px,2.6vw,32px);">来自肖然《如何快速了解一个行业》<span class="hl">2025</span></div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1vw;margin-top:5vh;">
+      <div style="background:var(--bg-alt);border:1px solid var(--border);padding:2vw 1vw;text-align:center;"><div style="font-family:'Barlow';font-weight:800;color:var(--fg);font-size:clamp(12px,1.4vw,18px);text-transform:uppercase;">industry<br>analyzer</div><div style="font-family:'IBM Plex Mono';font-size:9px;color:var(--muted);margin-top:10px;letter-spacing:.08em;">行业七维</div></div>
+      <div style="background:var(--bg-alt);border:1px solid var(--border);padding:2vw 1vw;text-align:center;"><div style="font-family:'Barlow';font-weight:800;color:var(--fg);font-size:clamp(12px,1.4vw,18px);text-transform:uppercase;">company<br>analyzer</div><div style="font-family:'IBM Plex Mono';font-size:9px;color:var(--muted);margin-top:10px;letter-spacing:.08em;">企业深度</div></div>
+      <div style="background:var(--bg-alt);border:1px solid var(--border);padding:2vw 1vw;text-align:center;"><div style="font-family:'Barlow';font-weight:800;color:var(--fg);font-size:clamp(12px,1.4vw,18px);text-transform:uppercase;">company<br>compare</div><div style="font-family:'IBM Plex Mono';font-size:9px;color:var(--muted);margin-top:10px;letter-spacing:.08em;">企业对比</div></div>
+      <div style="background:var(--bg-alt);border:1px solid var(--border);padding:2vw 1vw;text-align:center;"><div style="font-family:'Barlow';font-weight:800;color:var(--fg);font-size:clamp(12px,1.4vw,18px);text-transform:uppercase;">deep<br>research</div><div style="font-family:'IBM Plex Mono';font-size:9px;color:var(--muted);margin-top:10px;letter-spacing:.08em;">深度研究</div></div>
+      <div style="background:var(--bg-alt);border:1px solid var(--border);padding:2vw 1vw;text-align:center;"><div style="font-family:'Barlow';font-weight:800;color:var(--accent);font-size:clamp(12px,1.4vw,18px);text-transform:uppercase;">method<br>ology</div><div style="font-family:'IBM Plex Mono';font-size:9px;color:var(--muted);margin-top:10px;letter-spacing:.08em;">方法论</div></div>
+    </div>
+    <p class="lead" style="margin-top:4vh;">已落地 <span style="color:var(--accent);font-weight:800;">拼多多 · 电商平台</span> · Demo 阶段持续迭代</p>
+  </section>
+
+  <!-- P4 结语 -->
+  <section>
+    <div class="page-head"><span class="kicker">Closing</span><div class="rule"></div></div>
+    <h1 class="headline" style="font-size:clamp(34px,7vw,92px);">门槛不在技术，<span style="color:var(--accent)">在于尝试</span></h1>
+    <p class="lead">NEXT：高频日周月场景 · 多 Agent 协同 · 接入 Obsidian / Notion。欢迎交流，一起探索 AI 的更多可能。</p>
+  </section>
+
+</main>
+<nav class="footer-fold" id="fold"></nav>
+<script>
+(function(){
+  var r=document.getElementById('reader');
+  var secs=r.querySelectorAll('section');var fold=document.getElementById('fold');
+  secs.forEach(function(_,i){var s=document.createElement('span');s.textContent='0'+(i+1);s.dataset.i=i;s.onclick=function(){r.scrollTo({top:secs[i].offsetTop-118,behavior:'smooth'});};fold.appendChild(s);});
+  var labels=[...fold.children];
+  function mark(){
+    var st=r.scrollTop;var cur=0;
+    secs.forEach(function(s,i){var top=s.offsetTop-130;var bot=top+s.offsetHeight;if(st>=top)cur=i;});
+    labels.forEach(function(l){l.classList.toggle('on',+l.dataset.i===cur);});
+  }
+  r.addEventListener('scroll',mark);mark();
+  // 键盘
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowDown'||e.key===' ')r.scrollBy({top:innerHeight*0.8,behavior:'smooth'});
+    else if(e.key==='ArrowUp')r.scrollBy({top:-innerHeight*0.8,behavior:'smooth'});
+  });
+})();
+
+/* ==== 优化增强：ink 墨迹拖影 + 图片淡入 + 触屏 ==== */
+(function(){
+  var c=document.getElementById('ink'); if(!c) return;
+  var x=c.getContext('2d'); var W,H,pts=[];
+  function resize(){ W=c.width=innerWidth; H=c.height=innerHeight; }
+  resize(); addEventListener('resize',resize);
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  addEventListener('mousemove',function(e){
+    if(reduced) return;
+    var n=2+Math.floor(Math.random()*3);
+    for(var i=0;i<n;i++){
+      pts.push({
+        x:e.clientX+(Math.random()-.5)*26, y:e.clientY+(Math.random()-.5)*26,
+        r:Math.random()*2.4+.6, vx:(Math.random()-.5)*.7, vy:(Math.random()-.5)*.7,
+        l:60+Math.random()*40, a:Math.random()*.5+.2, born:Date.now()
+      });
+    }
+  });
+  function draw(){
+    x.clearRect(0,0,W,H);
+    var now=Date.now();
+    pts=pts.filter(function(p){ return now-p.born<p.l; });
+    for(var i=0;i<pts.length;i++){ var p=pts[i];
+      p.x+=p.vx; p.y+=p.vy;
+      var t=(now-p.born)/p.l;
+      x.fillStyle='rgba(240,236,229,'+(p.a*(1-t))+')';
+      x.beginPath(); x.arc(p.x,p.y,p.r*(1+t*1.6),0,7); x.fill();
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+  document.querySelectorAll('.news-photo img').forEach(function(img){
+    if(img.complete){ img.classList.add('ok'); }
+    else { img.addEventListener('load',function(){ img.classList.add('ok'); }); }
+  });
+})();
+(function(){
+  var r=document.getElementById('reader');
+  var ty=0;
+  r.addEventListener('touchstart',function(e){ ty=e.touches[0].clientY; },{passive:true});
+  r.addEventListener('touchend',function(e){
+    var dy=e.changedTouches[0].clientY-ty;
+    if(Math.abs(dy)>80){ r.scrollBy({top:dy<0?innerHeight*0.85:-innerHeight*0.85,behavior:'smooth'}); }
+  },{passive:true});
+})();
+
+</script>
+</body>
+</html>

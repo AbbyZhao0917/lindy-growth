@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8-BIT ORBIT · AI 成果矩阵</title>
+<link href="https://fonts.googleapis.com/css2?family=Tektur:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --neon-pink:#F0A6CA; --neon-cyan:#5EDCF4; --neon-yellow:#F4D03F;
+  --navy:#0F1B3D; --void:#0A0E27; --lavender:#E2D5F2;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--void);color:var(--lavender);font-family:'Space Mono',monospace;overflow:hidden;}
+/* 背景星尘粒子场(Canvas) */
+#particles{position:fixed;inset:0;z-index:0;}
+/* CRT 扫描线叠加 */
+.crt::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:998;background:repeating-linear-gradient(0deg,rgba(0,0,0,.18) 0 1px,transparent 1px 3px);mix-blend-mode:overlay;}
+.crt::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:999;background:radial-gradient(ellipse at center,transparent 55%,rgba(0,0,0,.4));}
+.flicker{animation:flicker 4s infinite;}
+@keyframes flicker{0%,97%{opacity:1;}98%{opacity:.85;}99%{opacity:1;}100%{opacity:.92;}}
+.ui{position:fixed;inset:0;z-index:1000;pointer-events:none;display:flex;flex-direction:column;}
+.hud{display:flex;justify-content:space-between;align-items:center;padding:22px 30px;font-size:13px;letter-spacing:.2em;color:var(--neon-cyan);pointer-events:auto;}
+.hud .logo{font-family:'Tektur';font-weight:900;font-size:22px;letter-spacing:.05em;color:var(--neon-pink);text-shadow:0 0 18px var(--neon-pink);}
+.hud .stat{color:var(--navy);}
+.stagearea{flex:1;position:relative;display:flex;align-items:center;justify-content:center;}
+/* slide 切换用 visibility/opacity（勿改 display:none） */
+.slide{position:absolute;width:100%;height:100%;visibility:hidden;opacity:0;pointer-events:none;flex-direction:column;justify-content:center;padding:0 8vw;transition:opacity .5s cubic-bezier(.2,.9,.3,1),visibility .5s;}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto;animation:fadeIn .5s cubic-bezier(.2,.9,.3,1);}
+@keyframes fadeIn{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+h1{font-family:'Tektur';font-weight:900;font-size:clamp(34px,6vw,72px);line-height:1;letter-spacing:.01em;}
+.cover-title{font-size:clamp(40px,8vw,96px);}
+.glitch{position:relative;}
+.glitch::before,.glitch::after{content:attr(data-text);position:absolute;inset:0;opacity:.8;}
+.glitch::before{color:var(--neon-pink);transform:translate(-3px,0);clip-path:inset(0 0 55% 0);animation:gl1 2.3s infinite steps(2);}
+.glitch::after{color:var(--neon-cyan);transform:translate(3px,0);clip-path:inset(55% 0 0 0);animation:gl2 1.8s infinite steps(2);}
+@keyframes gl1{0%,100%{transform:translate(-3px,0);}20%{transform:translate(2px,-2px);}40%{transform:translate(-2px,2px);}60%{transform:translate(3px,-1px);}}
+@keyframes gl2{0%,100%{transform:translate(3px,0);}25%{transform:translate(-2px,2px);}50%{transform:translate(2px,-2px);}}
+.sub{font-family:'Tektur';font-size:clamp(16px,2.2vw,26px);color:var(--neon-cyan);margin-top:18px;letter-spacing:.08em;}
+.term{font-family:'Space Mono';font-size:clamp(12px,1.5vw,16px);color:var(--lavender);margin-top:26px;letter-spacing:.05em;line-height:2;border-left:3px solid var(--neon-pink);padding-left:16px;}
+.term span{color:var(--neon-yellow);}
+/* 小节标题 */
+.sec-label{font-family:'Space Mono';font-size:clamp(12px,1.2vw,15px);letter-spacing:.3em;color:var(--neon-pink);text-transform:uppercase;margin-bottom:22px;}
+.sec-label::before{content:'▸ ';}
+/* 成果矩阵卡片 */
+.matrix{display:grid;grid-template-columns:repeat(4,1fr);gap:2vw;margin-top:4vh;}
+.m-cell{position:relative;border:1px solid var(--neon-cyan);background:rgba(15,27,61,.4);padding:2.4vw 1.6vw;border-radius:8px;transition:.3s;cursor:pointer;}
+.m-cell:hover{background:rgba(94,220,244,.15);box-shadow:0 0 30px rgba(94,220,244,.3);transform:translateY(-6px);}
+.m-cell .ico{font-size:clamp(26px,3.4vw,44px);margin-bottom:1.2vw;}
+.m-cell .nm{font-family:'Tektur';font-weight:700;font-size:clamp(14px,1.6vw,21px);color:var(--neon-yellow);margin-bottom:.8vw;}
+.m-cell .ds{font-size:clamp(10px,1.1vw,13px);color:var(--lavender);line-height:1.7;}
+/* 黑盒 vs 流水线 对比 */
+.flux{display:grid;grid-template-columns:1fr 1fr;gap:3vw;margin-top:5vh;}
+.flux-box{border:1px solid;border-radius:10px;padding:2.6vw;background:rgba(15,27,61,.4);}
+.flux-box.x{border-color:var(--neon-pink);}.flux-box.o{border-color:var(--neon-cyan);}
+.flux-box .fb-title{font-family:'Tektur';font-weight:900;font-size:clamp(20px,2.6vw,34px);margin-bottom:1.4vw;}
+.flux-box.x .fb-title{color:var(--neon-pink);}.flux-box.o .fb-title{color:var(--neon-cyan);}
+.flux-box ul{list-style:none;}
+.flux-box li{font-size:clamp(12px,1.4vw,17px);line-height:2;padding-left:1.4em;position:relative;}
+.flux-box.x li::before{content:'✖';position:absolute;left:0;color:var(--neon-pink);}
+.flux-box.o li::before{content:'✓';position:absolute;left:0;color:var(--neon-yellow);}
+.insight{font-family:'Tektur';font-weight:700;font-size:clamp(14px,1.8vw,22px);color:var(--neon-yellow);text-align:center;margin-top:5vh;text-shadow:0 0 20px rgba(244,208,63,.4);}
+/* 5个Skill */
+.skills{display:grid;grid-template-columns:repeat(5,1fr);gap:1.6vw;margin-top:4vh;}
+.skill{border:1px solid var(--neon-yellow);border-radius:8px;padding:1.8vw 1.2vw;text-align:center;background:rgba(244,208,63,.05);transition:.3s;cursor:pointer;}
+.skill:hover{background:rgba(244,208,63,.2);transform:translateY(-6px);box-shadow:0 0 24px rgba(244,208,63,.35);}
+.skill .sn{font-family:'Tektur';font-weight:700;font-size:clamp(13px,1.5vw,19px);color:var(--neon-yellow);}
+.skill .sd{font-size:clamp(9px,1vw,12px);color:var(--lavender);margin-top:.8vw;line-height:1.6;}
+.skill .sd b{color:var(--lavender);}
+/* 像素解码画廊 */
+.gallery{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:6vh;}
+.ph{position:relative;overflow:hidden;border:2px solid var(--neon-cyan);box-shadow:0 0 0 1px var(--void),0 0 40px rgba(94,220,244,.15);cursor:crosshair;}
+.ph canvas.px{width:100%;height:100%;display:block;image-rendering:pixelated;}
+.ph .cap{position:absolute;bottom:0;left:0;right:0;padding:8px 10px;font-size:11px;letter-spacing:.15em;color:var(--void);background:var(--neon-cyan);font-family:'Tektur';font-weight:700;}
+.ph .scan{position:absolute;top:0;left:0;width:100%;height:3px;background:linear-gradient(90deg,transparent,var(--neon-yellow),transparent);opacity:0;filter:drop-shadow(0 0 6px var(--neon-yellow));}
+.ph:hover .scan{opacity:1;animation:scanline 1.2s linear infinite;}
+@keyframes scanline{from{top:-3px;}to{top:100%;}}
+.ph:hover{border-color:var(--neon-yellow);box-shadow:0 0 0 2px var(--void),0 0 60px rgba(244,208,63,.35);}
+/* 工具条 & 进度 & 提示 */
+.toolbar{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:1002;display:flex;gap:10px;pointer-events:auto;}
+.tb-btn{font-family:'Tektur';font-weight:700;font-size:12px;letter-spacing:.12em;padding:8px 14px;border-radius:6px;border:1px solid var(--neon-cyan);background:rgba(10,14,39,.85);color:var(--neon-cyan);cursor:pointer;transition:.25s;text-transform:uppercase;}
+.tb-btn:hover{background:var(--neon-cyan);color:var(--void);box-shadow:0 0 18px rgba(94,220,244,.5);}
+.tb-btn.muted{opacity:.5;border-color:var(--neon-pink);color:var(--neon-pink);}
+.loadbar{position:fixed;top:0;left:0;height:3px;background:var(--neon-yellow);z-index:1005;width:0%;box-shadow:0 0 16px var(--neon-yellow);transition:width .3s;}
+.hint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);font-size:12px;letter-spacing:.25em;color:var(--navy);z-index:1006;pointer-events:none;opacity:0;}
+.hint b{color:var(--neon-yellow);}
+/* 点阵进度 */
+.dots{position:fixed;right:26px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:1001;pointer-events:auto;}
+.dot{width:12px;height:12px;transform:rotate(45deg);background:transparent;border:1px solid var(--neon-cyan);cursor:pointer;transition:.3s;}
+.dot.on{background:var(--neon-pink);border-color:var(--neon-pink);box-shadow:0 0 14px var(--neon-pink);}
+.dot:hover{background:var(--neon-cyan);}
+/* 页脚 techno-label */
+.tech-foot{position:absolute;bottom:4vh;left:8vw;font-family:'Space Mono';font-size:clamp(10px,1vw,13px);color:var(--navy);letter-spacing:.2em;}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+@media (max-width:768px){.slide{padding:0 6vw;}.dots{display:none;}.matrix{grid-template-columns:repeat(2,1fr);gap:3vw;}.skills{grid-template-columns:repeat(2,1fr);}.flux{grid-template-columns:1fr;}}
+</style>
+</head>
+<body class="crt flicker">
+<canvas id="particles"></canvas>
+
+<div class="ui">
+  <div class="hud">
+    <div class="logo">◢ 8BIT·ORBIT</div>
+    <div class="stat">NEON://VIBE-CODE_<span id="pagenum">01</span>/06</div>
+  </div>
+  <div class="stagearea">
+
+    <!-- S1 封面 -->
+    <section class="slide active">
+      <h1 class="glitch cover-title" data-text="VIBE CODE">VIBE CODE</h1>
+      <div class="sub">用 AGENT 打开工作的更多可能性</div>
+      <div class="term">&gt; inject abby.desktop --agent 2.0<br>&gt; <span>BOOTING CREATIVE PIPELINE…OK</span> <b style="color:var(--neon-yellow)">█</b></div>
+    </section>
+
+    <!-- S2 AI 成果矩阵 -->
+    <section class="slide">
+      <div class="sec-label">AI 成果矩阵 · 从研究到落地</div>
+      <h1 style="font-size:clamp(24px,3.6vw,44px);">一个人 + 两个 Agent 的实践</h1>
+      <div class="matrix">
+        <div class="m-cell"><div class="ico">🔬</div><div class="nm">行业研究</div><div class="ds">蒸馏方法论书籍 → 多步 Agent 流水线</div></div>
+        <div class="m-cell"><div class="ico">🎙</div><div class="nm">嘴替</div><div class="ds">一句话生成发言稿、主持词</div></div>
+        <div class="m-cell"><div class="ico">📝</div><div class="nm">会议助手</div><div class="ds">纪要 + 主持词 + 新闻稿一键生成</div></div>
+        <div class="m-cell"><div class="ico">🖨</div><div class="nm">3D 模型</div><div class="ds">徒手路线 → 实物模型</div></div>
+      </div>
+      <div class="term">&gt; <span>Claude Code + CC Switch + Hermes</span><br>&gt; Skills×30+ · MCP×4 · DeepSeek V4 / V4 Flash</div>
+    </section>
+
+    <!-- S3 黑盒 vs 流水线 -->
+    <section class="slide">
+      <div class="sec-label">行业研究 · 从黑盒到流水线</div>
+      <h1 style="font-size:clamp(24px,3.6vw,44px);">一次失败 → 一次拆解</h1>
+      <div class="flux">
+        <div class="flux-box x">
+          <div class="fb-title">1.0 黑盒模式</div>
+          <ul><li>喂《如何快速了解一个行业》</li><li>Agent 直接输出</li><li>成果粗糙、不可追溯</li><li>缺乏证据支撑</li></ul>
+        </div>
+        <div class="flux-box o">
+          <div class="fb-title">2.0 流水线模式</div>
+          <ul><li>任务拆解与边界明确</li><li>多轮定向检索</li><li>结构化报告撰写</li><li>证据校验 · 状态兜底</li></ul>
+        </div>
+      </div>
+      <div class="insight">✦ 关键洞察：不要端到端 —— 可追溯 · 可复现 · 可信 · 可扩展</div>
+    </section>
+
+    <!-- S4 五个 Skill -->
+    <section class="slide">
+      <div class="sec-label">行业研究方法论 · 蒸馏成 5 个 Skill</div>
+      <h1 style="font-size:clamp(24px,3.6vw,44px);">肖然《如何快速了解一个行业》</h1>
+      <div class="skills">
+        <div class="skill"><div class="sn">industry-<br>analyzer</div><div class="sd"><b>行业七维</b>分析</div></div>
+        <div class="skill"><div class="sn">company-<br>analyzer</div><div class="sd"><b>企业深度</b>分析</div></div>
+        <div class="skill"><div class="sn">company-<br>compare</div><div class="sd"><b>企业对比</b>分析</div></div>
+        <div class="skill"><div class="sn">deep-<br>research</div><div class="sd"><b>深度主题</b>研究</div></div>
+        <div class="skill"><div class="sn">method-<br>ology</div><div class="sd"><b>方法论</b>设计</div></div>
+      </div>
+      <div class="term">&gt; 已落地：<span>拼多多 · 电商平台</span><br>&gt; 状态：<span>DEMO 阶段 · 持续迭代</span></div>
+    </section>
+
+    <!-- S5 像素解码画廊（保留炫技） -->
+    <section class="slide">
+      <h1 style="font-size:clamp(24px,3.6vw,44px);">// 像素解码画廊</h1>
+      <div class="sub" style="margin-top:6px">HOVER 照片 = 像素上解码 / 扫描线游走</div>
+      <div class="gallery">
+        <div class="ph" data-src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=500&q=80" data-w="500" data-h="700"><canvas class="px"></canvas><div class="scan"></div><div class="cap">CHIP-01 · SUNSET</div></div>
+        <div class="ph" data-src="https://images.unsplash.com/photo-1519681393784-d120267933ba?w=500&q=80" data-w="500" data-h="700"><canvas class="px"></canvas><div class="scan"></div><div class="cap">CHIP-02 · NIGHT</div></div>
+        <div class="ph" data-src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=500&q=80" data-w="500" data-h="700"><canvas class="px"></canvas><div class="scan"></div><div class="cap">CHIP-03 · PEAK</div></div>
+      </div>
+      <div class="tech-foot">OFFLINE RESERVE · 现场无网也能炫</div>
+    </section>
+
+    <!-- S6 感悟未来 -->
+    <section class="slide">
+      <div class="sec-label">感悟 · 未来</div>
+      <h1 style="font-size:clamp(24px,3.6vw,44px);">门槛不在技术，在于尝试</h1>
+      <div class="term" style="border-left-color:var(--neon-yellow);font-size:clamp(14px,1.8vw,22px);line-height:2.4;">
+        &gt; 01 <span>能力半径扩大</span> —— 常规工作 + 偶尔操作 agent<br>
+        &gt; 02 <span>科技平权</span> —— Claude Code Fable 5 · 痛点：token 费用<br>
+        &gt; 03 <span>下一站</span> —— 日周月场景 · 多 Agent 协同 · 接入 Obsidian/Notion
+      </div>
+      <div class="insight" style="text-align:left;margin-top:7vh;font-size:clamp(16px,2vw,26px);">"这还不是提示词"</div>
+    </section>
+
+  </div>
+</div>
+
+<div class="loadbar" id="loadbar"></div>
+<div class="dots" id="dots"></div>
+<div class="toolbar">
+  <button class="tb-btn" id="sndBtn">🔊 SOUND</button>
+  <button class="tb-btn" id="fsBtn">⛶ FULL</button>
+</div>
+<div class="hint" id="hint">← → 切换 · <b>HOVER</b> 照片 · 滚轮换页 · <b>F</b> 全屏</div>
+
+<script>
+/* ==== 粒子背景画布 ==== */
+(function(){
+  var c=document.getElementById('particles'), x=c.getContext('2d');
+  var W,H,ps=[];
+  function resize(){W=c.width=innerWidth;H=c.height=innerHeight;var n=Math.floor(W*H/14000);ps=[];for(var i=0;i<n;i++)ps.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.6+0.3,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4});}
+  resize();addEventListener('resize',resize);
+  var cols=['94,220,244','240,166,202','226,213,242'];
+  function draw(){x.clearRect(0,0,W,H);for(var p of ps){p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1;var col=cols[Math.floor(Math.random()*cols.length)];x.fillStyle='rgba('+col+',.6)';x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill();}requestAnimationFrame(draw);}
+  draw();
+})();
+
+/* ==== 幻灯片导航 ==== */
+(function(){
+  var slides=[...document.querySelectorAll('.slide')];var cur=0;
+  var dotsBox=document.getElementById('dots');
+  slides.forEach(function(s,i){var d=document.createElement('div');d.className='dot'+(i===0?' on':'');d.onclick=function(){show(i)};dotsBox.appendChild(d);});
+  var dotEls=[...dotsBox.children];
+  function show(i){cur=(i+slides.length)%slides.length;slides.forEach(function(s,j){s.classList.toggle('active',j===cur);});dotEls.forEach(function(d,j){d.classList.toggle('on',j===cur);});document.getElementById('pagenum').textContent='0'+(cur+1);}
+  window.__nav=show;
+  function initPhotos(){
+    document.querySelectorAll('.ph').forEach(function(p){
+      var cv=p.querySelector('canvas'), cx=cv.getContext('2d');
+      var src=p.dataset.src,w=+p.dataset.w,h=+p.dataset.h;
+      var img=new Image();
+      img.onload=function(){
+        cv.width=w;cv.height=h;cx.drawImage(img,0,0,w,h);
+        var low=12, lc=document.createElement('canvas');lc.width=low;lc.height=low;
+        lc.getContext('2d').drawImage(cv,0,0,low,low);
+        var steps=10,step=0;
+        function decode(){
+          step++;
+          var s=low+Math.round((w-low)*step/steps);
+          var tmp=document.createElement('canvas');tmp.width=s;tmp.height=Math.round(s*h/w);
+          tmp.getContext('2d').imageSmoothingEnabled=false;
+          tmp.getContext('2d').drawImage(lc,0,0,s,tmp.height);
+          cx.imageSmoothingEnabled=false;cx.clearRect(0,0,w,h);cx.drawImage(tmp,0,0,w,h);
+          if(step<steps)setTimeout(decode,step*30+30);
+        }
+        p._full=img;p._low=lc;
+        decode();
+      };
+      img.src=src;
+      p.addEventListener('mouseenter',function(){if(p._full){cx.imageSmoothingEnabled=true;cx.drawImage(p._full,0,0,w,h);}});
+      p.addEventListener('mouseleave',function(){if(p._low){var lc2=p._low,cw=cv.width,ch=cv.height;cx.imageSmoothingEnabled=false;cx.drawImage(lc2,0,0,cw,ch);}});
+    });
+  }
+  initPhotos();
+  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')show(cur+1);else if(e.key==='ArrowLeft')show(cur-1);});
+  addEventListener('wheel',function(e){if(e.deltaY>0)show(cur+1);else show(cur-1);},{passive:true});
+  show(0);
+})();
+
+/* ==== WebAudio 8-bit 音效 + 全屏 + 触屏 + 提示 ==== */
+(function(){
+  var AC=null, soundOn=true, sndBtn=document.getElementById('sndBtn'), hint=document.getElementById('hint');
+  function ac(){ if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} } return AC; }
+  function beep(freq,dur,type,vol){
+    if(!soundOn) return; var A=ac(); if(!A) return;
+    var o=A.createOscillator(), g=A.createGain();
+    o.type=type||'square'; o.frequency.value=freq; g.gain.value=vol||.08;
+    o.connect(g); g.connect(A.destination);
+    var t=A.currentTime; g.gain.setValueAtTime(vol||.08,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o.start(t); o.stop(t+dur);
+  }
+  sndBtn.addEventListener('click',function(){
+    soundOn=!soundOn; sndBtn.classList.toggle('muted',!soundOn);
+    sndBtn.textContent=soundOn?'🔊 SOUND':'🔇 MUTE'; if(soundOn) beep(660,.1,'triangle');
+  });
+  var lastActive=document.querySelector('.slide.active');
+  var obs=new MutationObserver(function(){
+    var cur=document.querySelector('.slide.active');
+    if(cur!==lastActive){ var all=[...document.querySelectorAll('.slide')]; slideSfx(all.indexOf(cur)>=all.indexOf(lastActive)); lastActive=cur; }
+  });
+  function slideSfx(up){ beep(up?880:440,.08,'square'); }
+  obs.observe(document.querySelector('.ui'),{subtree:true,attributes:true,attributeFilter:['class']});
+  // 全屏
+  document.getElementById('fsBtn').addEventListener('click',function(){
+    if(document.fullscreenElement){document.exitFullscreen();} else if(document.documentElement.requestFullscreen){document.documentElement.requestFullscreen().catch(function(){});}
+  });
+  document.addEventListener('keydown',function(e){ if(e.key==='f'||e.key==='F'){ document.getElementById('fsBtn').click(); } });
+  // 触屏
+  var tx=0;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){
+    var dx=e.changedTouches[0].clientX-tx; if(Math.abs(dx)>60&&window.__nav){ window.__nav(cur + (dx<0?1:-1)); }
+  },{passive:true});
+  // 提示淡入淡出
+  setTimeout(function(){hint.style.opacity=1;},1200);
+  setTimeout(function(){hint.style.opacity=0;},6000);
+})();
+</script>
+</body>
+</html>

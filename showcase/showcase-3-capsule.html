@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CAPSULE · AI 基建全景</title>
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700;6..96,900&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F5F0;--fg:#1A1A1A;--coral:#E85D4E;--lime:#C4D94E;--lav:#C5B5E0;
+  --sky:#8BB4F7;--violet:#A06CE8;--yellow:#F2D160;--peach:#F5B895;--mint:#A8E6CF;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{width:100%;height:100%;background:var(--bg);color:var(--fg);font-family:'Space Grotesk',sans-serif;overflow:hidden;}
+/* 漂浮胶囊色块背景 */
+.blobs{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.blob{position:absolute;border-radius:50%;filter:blur(50px);opacity:.5;animation:float 14s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translate(0,0) scale(1);}50%{transform:translate(30px,-30px) scale(1.08);}}
+/* 顶栏 */
+.bar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding:22px 4vw;font-family:'Space Grotesk';font-weight:700;}
+.bar .logo{font-size:18px;letter-spacing:.08em;}
+.bar .logo i{font-family:'Bodoni Moda';font-style:normal;font-weight:900;color:var(--coral);}
+.bar .filters{display:flex;gap:8px;}
+.chip{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:500;cursor:pointer;background:var(--fg);color:var(--bg);border:none;transition:.25s;letter-spacing:.02em;}
+.chip:hover{transform:translateY(-2px);}
+.chip.on{background:var(--coral);}
+/* 舞台-多页 */
+.stage{position:fixed;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;}
+.slide{position:absolute;width:100%;height:100%;visibility:hidden;opacity:0;pointer-events:none;display:flex;flex-direction:column;justify-content:center;padding:14vh 6vw 10vh;transition:opacity .5s,visibility .5s;}
+.slide.active{visibility:visible;opacity:1;pointer-events:auto;animation:fadeIn .5s;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:none;}}
+.intro{text-align:center;margin-bottom:5vh;}
+.intro h1{font-family:'Bodoni Moda';font-weight:900;font-size:clamp(30px,5vw,54px);letter-spacing:-.01em;}
+.intro h1 em{font-style:italic;color:var(--violet);}
+.intro p{font-size:14px;color:#6b6b66;letter-spacing:.14em;text-transform:uppercase;margin-top:10px;}
+/* 小节标题 */
+.kick{font-family:'Space Grotesk';font-weight:700;font-size:clamp(18px,2.2vw,28px);color:var(--coral);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6vh;text-align:center;}
+.kick b{font-family:'Bodoni Moda';font-style:italic;font-weight:900;color:var(--fg);}
+/* 基建卡片 - 2x2 */
+.infra-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:2.2vw;perspective:1200px;max-width:1400px;margin:0 auto;width:100%;}
+.infra{position:relative;border-radius:22px;padding:2.6vw 2.4vw;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.12);cursor:pointer;transform-style:preserve-3d;transition:box-shadow .4s;border:1px solid rgba(0,0,0,.04);}
+.infra .i-ico{font-size:2.4vw;margin-bottom:1.2vw;}
+.infra .i-title{font-family:'Bodoni Moda';font-weight:900;font-size:clamp(18px,2vw,26px);margin-bottom:.8vw;}
+.infra .i-body{font-size:clamp(12px,1.2vw,16px);color:#6b6b66;line-height:1.7;}
+.infra .i-body b{color:var(--fg);}
+.infra[data-c="coral"]{border-top:6px solid var(--coral);}.infra[data-c="sky"]{border-top:6px solid var(--sky);}
+.infra[data-c="lime"]{border-top:6px solid var(--lime);}.infra[data-c="violet"]{border-top:6px solid var(--violet);}
+/* 3D 倾斜照片卡（成果画廊） */
+.capsules{display:grid;grid-template-columns:repeat(3,1fr);gap:2.4vw;perspective:1200px;max-width:1500px;width:100%;margin:0 auto;}
+.tile{position:relative;border-radius:22px;overflow:hidden;cursor:pointer;transform-style:preserve-3d;transition:box-shadow .4s;background:#fff;aspect-ratio:4/5;box-shadow:0 18px 50px rgba(0,0,0,.12);}
+.tile img{width:100%;height:100%;object-fit:cover;display:block;will-change:transform;}
+.tile .halo{position:absolute;inset:0;background:radial-gradient(400px at var(--mx,50%) var(--my,50%),rgba(255,255,255,.45),transparent 55%);mix-blend-mode:overlay;opacity:0;transition:opacity .3s;border-radius:22px;}
+.tile:hover .halo{opacity:1;}
+.tile .tile-tag{position:absolute;top:14px;left:14px;font-size:11px;font-weight:700;letter-spacing:.12em;padding:6px 12px;border-radius:99px;color:var(--bg);backdrop-filter:blur(4px);}
+.tile .tile-cap{position:absolute;left:0;right:0;bottom:0;padding:34px 18px 14px;font-family:'Bodoni Moda';font-weight:700;font-size:clamp(16px,1.8vw,22px);color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.4);background:linear-gradient(transparent,rgba(0,0,0,.55));}
+/* 滤镜 */
+body.f-lime .tile img{filter:saturate(.4) sepia(1) hue-rotate(40deg);}
+body.f-grayscale .tile img{filter:grayscale(1) contrast(1.05);}
+body.f-invert .tile img{filter:invert(1) hue-rotate(180deg);}
+/* 导航点 */
+.dots{position:fixed;right:30px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:12;}
+.dot{width:12px;height:12px;border-radius:50%;background:rgba(0,0,0,.15);cursor:pointer;transition:.3s;border:2px solid transparent;}
+.dot.on{background:var(--coral);border-color:#fff;box-shadow:0 0 0 3px rgba(232,93,78,.3);}
+.dot:hover{background:var(--coral);}
+/* 提示 */
+.hintbar{position:fixed;bottom:22px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:.15em;color:#9b9b94;z-index:11;text-transform:uppercase;}
+.hintbar b{color:var(--violet);}
+/* lightbox */
+.lightbox{position:fixed;inset:0;z-index:100;background:rgba(20,18,16,.92);backdrop-filter:blur(8px);display:none;flex-direction:column;align-items:center;justify-content:center;}
+.lightbox.open{display:flex;}
+.lightbox img{max-width:84vw;max-height:74vh;border-radius:14px;box-shadow:0 30px 80px rgba(0,0,0,.6);}
+.lightbox .lb-cap{font-family:'Bodoni Moda';font-weight:700;font-size:clamp(20px,2.4vw,30px);color:#fff;margin-top:26px;}
+.lightbox .lb-close{position:absolute;top:28px;right:36px;width:54px;height:54px;border-radius:50%;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.06);color:#fff;font-size:26px;cursor:pointer;}
+.lightbox .lb-close:hover{background:var(--coral);}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+@media (max-width:768px){.dots{display:none;}.infra-grid{grid-template-columns:1fr;}.capsules{grid-template-columns:repeat(2,1fr);}.filters{display:none;}}
+</style>
+</head>
+<body>
+<div class="blobs">
+  <span class="blob" style="width:28vw;height:28vw;background:var(--peach);top:-6vw;left:-4vw;"></span>
+  <span class="blob" style="width:24vw;height:24vw;background:var(--lav);bottom:-5vw;right:-3vw;animation-delay:2s;"></span>
+  <span class="blob" style="width:18vw;height:18vw;background:var(--mint);top:40vh;left:44vw;animation-delay:4s;"></span>
+</div>
+
+<header class="bar">
+  <div class="logo">CAPSULE<i>·</i>INFRASTRUCTURE</div>
+  <div class="filters">
+    <button class="chip" data-f="none">原彩</button>
+    <button class="chip" data-f="lime">胶卷</button>
+    <button class="chip" data-f="grayscale">墨调</button>
+    <button class="chip" data-f="invert">反相</button>
+  </div>
+</header>
+
+<main class="stage">
+
+  <!-- S1 封面 -->
+  <section class="slide active">
+    <div class="intro">
+      <h1>我的 AI <em>基础设施全景</em></h1>
+      <p>A Tilt-Reactive Infrastructure Tour · 6 Capsules</p>
+    </div>
+  </section>
+
+  <!-- S2 本地 + ECS -->
+  <section class="slide">
+    <div class="kick">Computed in <b>Two Homes</b></div>
+    <div class="infra-grid">
+      <div class="infra" data-tilt data-c="coral"><div class="i-ico">💻</div><div class="i-title">本地环境</div><div class="i-body">Claude Code + <b>cc switch</b> + 中转站<br>→ Claude Sonnet · DeepSeek V4 Pro · Qwen</div></div>
+      <div class="infra" data-tilt data-c="sky"><div class="i-ico">☁️</div><div class="i-title">阿里云 ECS</div><div class="i-body"><b>Hermes Agent</b>（微信+飞书接入）<br>→ DeepSeek V4 Flash API 驱动 · 7×24</div></div>
+      <div class="infra" data-tilt data-c="lime"><div class="i-ico">🧩</div><div class="i-title">Skills 体系</div><div class="i-body"><b>Skills×30+</b> · superpower / skill-creator<br>3D打印 · 深度研究 · 会议助手…</div></div>
+      <div class="infra" data-tilt data-c="violet"><div class="i-ico">🔌</div><div class="i-title">MCP 连接</div><div class="i-body"><b>MCP×4</b> · Excel · Chrome DevTools<br>Gemini CLI · Context7 文档</div></div>
+    </div>
+  </section>
+
+  <!-- S3 工作模式 + 人格层 -->
+  <section class="slide">
+    <div class="kick">A system that Thinks <b>Then Acts</b></div>
+    <div class="infra-grid">
+      <div class="infra" data-tilt data-c="coral"><div class="i-ico">⚙️</div><div class="i-title">小工具 & 工作模式</div><div class="i-body"><b>Stop Hook</b> → macOS 通知+提示音<br><b>Plan Mode</b> 先规划再执行<br><b>Worktree</b> 实验隔离</div></div>
+      <div class="infra" data-tilt data-c="sky"><div class="i-ico">🧠</div><div class="i-title">人格层 Agent Config</div><div class="i-body"><b>SOUL.md</b> — 性格 + 风格设定<br><b>Claude.md</b> — 项目专属规则</div></div>
+      <div class="infra" data-tilt data-c="lime"><div class="i-ico">🗂</div><div class="i-title">方法论蒸馏</div><div class="i-body">肖然《如何快速了解一个行业》<br>→ <b>5 个 Skill</b> · Plan Mode 拆解</div></div>
+      <div class="infra" data-tilt data-c="violet"><div class="i-ico">🧿</div><div class="i-title">已落地案例</div><div class="i-body"><b>拼多多 · 电商平台</b><br>DEMO 阶段 · 持续迭代</div></div>
+    </div>
+  </section>
+
+  <!-- S4 AI 成果画廊（tile炫技+点击lightbox） -->
+  <section class="slide">
+    <div class="kick">Ground to <b>Reality</b></div>
+    <div class="capsules" id="caps">
+      <div class="tile" data-tilt style="--c:var(--coral);">
+        <img src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600&q=80" alt="Sunset">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--coral)">🔬</span><div class="tile-cap">行业研究流水线</div>
+      </div>
+      <div class="tile" data-tilt style="--c:var(--sky);">
+        <img src="https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=600&q=80" alt="Mountain">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--sky)">🎙</span><div class="tile-cap">嘴替·发言稿</div>
+      </div>
+      <div class="tile" data-tilt style="--c:var(--violet);">
+        <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=600&q=80" alt="Forest">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--violet)">📝</span><div class="tile-cap">会议三件套</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S5 3D 建模炫技 -->
+  <section class="slide">
+    <div class="kick">From Path to <b>Object</b></div>
+    <div class="capsules">
+      <div class="tile" data-tilt style="--c:var(--lime);">
+        <img src="https://images.unsplash.com/photo-1555617981-dac3880eac9e?w=600&q=80" alt="3D print">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--lime)">🖨</span><div class="tile-cap">徒手路线 → 实物模型</div>
+      </div>
+      <div class="tile" data-tilt style="--c:var(--coral);">
+        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&q=80" alt="code">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--coral)">🛠</span><div class="tile-cap">Vibe Coding 工作台</div>
+      </div>
+      <div class="tile" data-tilt style="--c:var(--violet);">
+        <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80" alt="chip">
+        <div class="halo"></div><span class="tile-tag" style="background:var(--violet)">⚡</span><div class="tile-cap">Agent 时代引擎</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- S6 收尾 -->
+  <section class="slide">
+    <div class="intro">
+      <h1>门槛不在技术，<em>在于尝试</em></h1>
+      <p>NEXT · 日周月场景 · 多 Agent 协同 · Obsidian / Notion</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="dots" id="dots"></div>
+<div class="hintbar"><b>移动/拖动</b> 卡片三维倾斜 + 光晕 · <b>点击照片</b> 全屏 · <b>滤镜</b> 换色调</div>
+
+<!-- lightbox -->
+<div class="lightbox" id="lb">
+  <button class="lb-close" id="lbClose">✕</button>
+  <img id="lbImg" src="" alt="">
+  <div class="lb-cap" id="lbCap"></div>
+</div>
+
+<script>
+/* ==== 幻灯片导航 ==== */
+(function(){
+  var slides=[...document.querySelectorAll('.slide')], cur=0;
+  var dotsBox=document.getElementById('dots');
+  slides.forEach(function(s,i){var d=document.createElement('div');d.className='dot'+(i===0?' on':'');d.onclick=function(){show(i)};dotsBox.appendChild(d);});
+  var de=[...dotsBox.children];
+  function show(i){cur=(i+slides.length)%slides.length;slides.forEach(function(s,j){s.classList.toggle('active',j===cur);});de.forEach(function(d,j){d.classList.toggle('on',j===cur);});}
+  window.__nav=show;
+  document.addEventListener('keydown',function(e){if(e.key==='ArrowRight'||e.key===' ')show(cur+1);else if(e.key==='ArrowLeft'||e.key==='Escape')show(cur-1);});
+  addEventListener('wheel',function(e){if(e.deltaY>0)show(cur+1);else show(cur-1);},{passive:true});
+  var tx=0;
+  document.addEventListener('touchstart',function(e){tx=e.touches[0].clientX;},{passive:true});
+  document.addEventListener('touchend',function(e){var dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>60)show(cur+(dx<0?1:-1));},{passive:true});
+  show(0);
+})();
+/* ==== 3D Tilt（桌面+触屏） ==== */
+(function(){
+  var tiles=document.querySelectorAll('.infra[data-tilt], .tile[data-tilt]');
+  tiles.forEach(function(t){
+    t.addEventListener('mousemove',function(e){
+      var r=t.getBoundingClientRect();var px=(e.clientX-r.left)/r.width,py=(e.clientY-r.top)/r.height;
+      t.style.transform='rotateX('+((py-.5)*-12)+'deg) rotateY('+((px-.5)*12)+'deg) scale(1.02)';
+      t.style.setProperty('--mx',(px*100)+'%');t.style.setProperty('--my',(py*100)+'%');
+    });
+    t.addEventListener('mouseleave',function(){t.style.transform='rotateX(0) rotateY(0) scale(1)';});
+    t.addEventListener('click',function(){ if(t.classList.contains('tile')) openLb(t); });
+  });
+  // 触屏 tilt
+  if('ontouchstart' in window){
+    tiles.forEach(function(t){
+      var m=false;
+      t.addEventListener('touchstart',function(){m=true;},{passive:true});
+      t.addEventListener('touchmove',function(e){if(!m)return;var c=e.touches[0],r=t.getBoundingClientRect();var px=(c.clientX-r.left)/r.width,py=(c.clientY-r.top)/r.height;t.style.transform='rotateX('+((py-.5)*-12)+'deg) rotateY('+((px-.5)*12)+'deg) scale(1.02)';e.preventDefault();},{passive:false});
+      t.addEventListener('touchend',function(){m=false;t.style.transform='rotateX(0) rotateY(0) scale(1)';});
+    });
+  }
+})();
+/* ==== 滤镜 ==== */
+(function(){
+  var btns=[...document.querySelectorAll('.chip[data-f]')];
+  btns.forEach(function(b){b.addEventListener('click',function(){document.body.className='f-'+b.dataset.f;btns.forEach(function(x){x.classList.toggle('on',x===b);});});});
+  document.querySelector('.chip[data-f="none"]').classList.add('on');
+})();
+/* ==== Lightbox ==== */
+(function(){
+  var lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg'),lbCap=document.getElementById('lbCap');
+  window.openLb=function(tile){var img=tile.querySelector('img');if(!img)return;lbImg.src=img.src.replace('q=80','q=40');var cap=tile.querySelector('.tile-cap');lbCap.textContent=cap?cap.textContent:'';lb.classList.add('open');};
+  document.getElementById('lbClose').addEventListener('click',function(){lb.classList.remove('open');});
+  lb.addEventListener('click',function(e){if(e.target===lb)lb.classList.remove('open');});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('open');});
+})();
+</script>
+</body>
+</html>
